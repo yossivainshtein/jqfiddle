@@ -129,6 +129,8 @@ function createJsonTree(obj, heirarchy) {
                 let collapseCheckBox = createCheckBox('collapseBox', function () {
                     childNodes.classList.toggle('hidden');
                 });
+                // collapseCheckBox
+                // data-toggle="collapse" href="#collapseExample"
                 propertyNode.appendChild(collapseCheckBox);
             }
             propertyNode.appendChild(labelNode);
@@ -155,7 +157,10 @@ function createJsonTree(obj, heirarchy) {
 }
 
 function parseJson() {
-    let text = document.getElementById("input").value
+    
+   
+
+    let text = document.getElementById("input").value  
     try {
         let obj = JSON.parse(text)
         let objectElement = createJsonTree(obj, [])
@@ -164,50 +169,17 @@ function parseJson() {
         selectedPaths.clear()
         root.innerHTML = ''
         root.appendChild(objectElement)
+        
+        document.querySelector('#tree-container').scrollIntoView({ 
+            behavior: 'smooth' 
+        });
     } catch(err) {
         console.log(err)
     }
+
 }
 
 function sample() {
-    document.getElementById("input").innerText = `{
-        "quiz": {
-            "sport": {
-                "q1": {
-                    "question": "Which one is correct team name in NBA?",
-                    "options": [
-                        "New York Bulls",
-                        "Los Angeles Kings",
-                        "Golden State Warriros",
-                        "Huston Rocket"
-                    ],
-                    "answer": "Huston Rocket"
-                }
-            },
-            "maths": {
-                "q1": {
-                    "question": "5 + 7 = ?",
-                    "options": [
-                        "10",
-                        "11",
-                        "12",
-                        "13"
-                    ],
-                    "answer": "12"
-                },
-                "q2": {
-                    "question": "12 - 8 = ?",
-                    "options": [
-                        "1",
-                        "2",
-                        "3",
-                        "4"
-                    ],
-                    "answer": "4"
-                }
-            }
-        }
-    }
-    
-      `.trim()
+    document.getElementById("input").innerText = 
+    `{"quiz":{"sport":{"q1":{"question":"Which one is correct team name in NBA?","options":["New York Bulls","Los Angeles Kings","Golden State Warriros","Huston Rocket"],"answer":"Huston Rocket"}},"maths":{"q1":{"question":"5 + 7 = ?","options":["10","11","12","13"],"answer":"12"},"q2":{"question":"12 - 8 = ?","options":["1","2","3","4"],"answer":"4"}}}}`.trim()
 }

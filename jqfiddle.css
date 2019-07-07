@@ -52,3 +52,7 @@
 .input-group {
     margin-bottom:20px;
 }
+
+.page-container {
+    font-family: monospace;
+}

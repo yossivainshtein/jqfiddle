@@ -1,0 +1,54 @@
+.jsonValue {
+    display: inline-block;
+    color: purple;
+    margin-left: 1em;
+}
+
+.jsonElement {
+
+}
+
+.jsonLabel {
+
+}
+
+.mainHeader {
+    text-align: center;
+}
+
+.hidden {
+    display: none;
+}
+
+#result-line {
+}
+
+.page-container {
+    margin: 20px 40px;
+}
+
+#input {
+    height: 200px;
+}
+
+#tree-container {
+    flex: 1 1 auto;
+    height: auto;
+}
+
+#footer {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.pretext-width{
+    width: 200px;
+}
+
+.pretext-width > span {
+    width: 100%;
+}
+
+.input-group {
+    margin-bottom:20px;
+}

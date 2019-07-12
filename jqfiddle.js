@@ -3,7 +3,7 @@ isArray = function(a) {
 }
 
 createElement = function (type, className) {
-    let e = document.createElement(type);
+    let e =     document.createElement(type);
     if (className) {
         e.classList.add(className);
     }
@@ -22,6 +22,26 @@ createCheckBox = function (className, clickHandler) {
     return cb;
 }
 
+function createCollapseBox(child_id) {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 292.362 292.362');
+    svg.classList.add('chevron')
+    svg.classList.add('show')
+
+    svg.setAttribute("data-toggle", "collapse");
+    svg.setAttribute("href", "#"+child_id);
+    svg.setAttribute("aria-expanded", "false");
+    svg.addEventListener("click", function() {
+        svg.classList.toggle('chevron-closed');
+    })
+    use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+    use.setAttributeNS('http://www.w3.org/1999/xlink', 'href', '#triangle');
+
+    svg.appendChild(use);
+
+    return svg;
+}
+
 let selectedPaths = new Set();
 
 toggleHeirarchy = function(heirarchy) {
@@ -33,7 +53,7 @@ toggleHeirarchy = function(heirarchy) {
         }
 
         let str = calculateJQLine(selectedPaths);
-        document.getElementById("result-line").innerText = 'jq ' + str;
+        document.getElementById("result-line").innerText = "jq '" + str + "'";
     }
 }
 
@@ -106,11 +126,12 @@ function calcHeirarchyLine(path, addNames) {
     return line;
 }
 
-function createJsonTree(obj, heirarchy) {
+function createJsonTree(obj, current_heirarchy) {
     let currentNode;
 
     if (obj instanceof Object) {
         currentNode = createElement('ul', 'jsonElement');
+        currentNode.classList.add('collapse','show')
 
         for (var property in obj) {                
             if (isArray(obj)) {
@@ -119,35 +140,33 @@ function createJsonTree(obj, heirarchy) {
 
             let propertyNode = createElement('li', 'jsonProperty');            
             let labelNode = createElement('span', 'jsonLabel');
-            labelNode.innerHTML = property.toString();
+            labelNode.innerText = property.toString();
 
 
-            heirarchy.push(property);
-            let childNodes = createJsonTree(obj[property], heirarchy);
-            
+            current_heirarchy.push(property);
+            let childNodes = createJsonTree(obj[property], current_heirarchy);
+            const child_id = current_heirarchy.join("___")
+            childNodes.setAttribute("id", child_id)
+
             if (obj[property] instanceof Object) {
-                let collapseCheckBox = createCheckBox('collapseBox', function () {
-                    childNodes.classList.toggle('hidden');
-                });
-                // collapseCheckBox
-                // data-toggle="collapse" href="#collapseExample"
+                let collapseCheckBox = createCollapseBox(child_id);
                 propertyNode.appendChild(collapseCheckBox);
             }
             propertyNode.appendChild(labelNode);
 
             if (obj[property] instanceof Object) {
-                let currentHeirarcy = heirarchy.slice();
+                let currentHeirarcy = current_heirarchy.slice();
                 let selectChechBox = createCheckBox('selectBox', toggleHeirarchy(currentHeirarcy));
                 propertyNode.appendChild(selectChechBox);
             }
             propertyNode.appendChild(childNodes);
             currentNode.appendChild(propertyNode); 
-            heirarchy.pop();
+            current_heirarchy.pop();
         }
     } else {
         currentNode = createElement('span', 'jsonValue');
         currentNode.textContent = obj;
-        let currentHeirarcy = heirarchy.slice();
+        let currentHeirarcy = current_heirarchy.slice();
 
         let selectChechBox = createCheckBox('selectBox', toggleHeirarchy(currentHeirarcy));
         currentNode.appendChild(selectChechBox);
@@ -157,13 +176,11 @@ function createJsonTree(obj, heirarchy) {
 }
 
 function parseJson() {
-    
-   
-
     let text = document.getElementById("input").value  
     try {
         let obj = JSON.parse(text)
         let objectElement = createJsonTree(obj, [])
+
         selectedPaths.clear()
         let root = document.getElementById("tree-container")
         selectedPaths.clear()
@@ -180,6 +197,7 @@ function parseJson() {
 }
 
 function sample() {
-    document.getElementById("input").innerText = 
-    `{"quiz":{"sport":{"q1":{"question":"Which one is correct team name in NBA?","options":["New York Bulls","Los Angeles Kings","Golden State Warriros","Huston Rocket"],"answer":"Huston Rocket"}},"maths":{"q1":{"question":"5 + 7 = ?","options":["10","11","12","13"],"answer":"12"},"q2":{"question":"12 - 8 = ?","options":["1","2","3","4"],"answer":"4"}}}}`.trim()
+    obj = {"quiz":{"sport":{"q1":{"question":"Which one is correct team name in NBA?","options":["New York Bulls","Los Angeles Kings","Golden State Warriros","Huston Rocket"],"answer":"Huston Rocket"}},"maths":{"q1":{"question":"5 + 7 = ?","options":["10","11","12","13"],"answer":"12"},"q2":{"question":"12 - 8 = ?","options":["1","2","3","4"],"answer":"4"}}}}
+    text = JSON.stringify(obj, null, 2); 
+    document.getElementById("input").value = text;
 }

@@ -5,7 +5,8 @@
 }
 
 .jsonElement {
-
+    list-style: none;
+    border-left: palegoldenrod 1px dashed;
 }
 
 .jsonLabel {
@@ -34,6 +35,7 @@
 #tree-container {
     flex: 1 1 auto;
     height: auto;
+    min-height: 200px;
 }
 
 #footer {
@@ -56,3 +58,15 @@
 .page-container {
     font-family: monospace;
 }
+
+.chevron {
+    width: 10px;
+    margin-right: 10px;
+    -webkit-transition: -webkit-transform .4s ease-in-out;
+    -ms-transition: -ms-transform .4s ease-in-out;
+    transition: transform .4s ease-in-out;  
+ }
+
+ .chevron-closed {
+     transform: rotate(-90deg);
+ }

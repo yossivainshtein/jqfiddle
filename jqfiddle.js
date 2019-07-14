@@ -138,37 +138,41 @@ function createJsonTree(obj, current_heirarchy) {
                 property = Number.parseInt(property);
             }
 
-            let propertyNode = createElement('li', 'jsonProperty');            
-            let labelNode = createElement('span', 'jsonLabel');
-            labelNode.innerText = property.toString();
+            let propertyNode = createElement('li', 'jsonProperty');    
+            const propertyNodeId = current_heirarchy.join("___")
 
-
-            current_heirarchy.push(property);
-            let childNodes = createJsonTree(obj[property], current_heirarchy);
-            const child_id = current_heirarchy.join("___")
-            childNodes.setAttribute("id", child_id)
-
+            // create collapse checkbox
             if (obj[property] instanceof Object) {
-                let collapseCheckBox = createCollapseBox(child_id);
+                let collapseCheckBox = createCollapseBox(propertyNodeId);
                 propertyNode.appendChild(collapseCheckBox);
             }
+
+            // create property label
+            let labelNode = createElement('span', 'jsonLabel');
+            labelNode.innerText = property.toString();
             propertyNode.appendChild(labelNode);
 
+
+            // create selection checkbox
             if (obj[property] instanceof Object) {
-                let currentHeirarcy = current_heirarchy.slice();
-                let selectChechBox = createCheckBox('selectBox', toggleHeirarchy(currentHeirarcy));
+                let selectChechBox = createCheckBox('selectBox', toggleHeirarchy(current_heirarchy.slice()));
                 propertyNode.appendChild(selectChechBox);
             }
-            propertyNode.appendChild(childNodes);
-            currentNode.appendChild(propertyNode); 
+
+            // create sub-tree
+            current_heirarchy.push(property);
+            let childNode = createJsonTree(obj[property], current_heirarchy);
+            childNode.setAttribute("id", propertyNodeId)
+            propertyNode.appendChild(childNode);
             current_heirarchy.pop();
+
+            // attach property to main node
+            currentNode.appendChild(propertyNode); 
         }
     } else {
         currentNode = createElement('span', 'jsonValue');
         currentNode.textContent = obj;
-        let currentHeirarcy = current_heirarchy.slice();
-
-        let selectChechBox = createCheckBox('selectBox', toggleHeirarchy(currentHeirarcy));
+        let selectChechBox = createCheckBox('selectBox', toggleHeirarchy(current_heirarchy.slice()));
         currentNode.appendChild(selectChechBox);
     }
 

@@ -70,3 +70,7 @@
  .chevron-closed {
      transform: rotate(-90deg);
  }
+
+ .selectBox {
+     margin-left:20px;
+ }

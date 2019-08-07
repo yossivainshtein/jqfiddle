@@ -1,9 +1,9 @@
-isArray = function(a) {
+function isArray(a) {
     return (!!a) && (a.constructor === Array);
 }
 
-createElement = function (type, className) {
-    let e =     document.createElement(type);
+function createElement(type, className) {
+    let e = document.createElement(type);
     if (className) {
         e.classList.add(className);
     }
@@ -11,7 +11,7 @@ createElement = function (type, className) {
     return e;
 }
 
-createCheckBox = function (className, clickHandler) {
+function createCheckBox(className, clickHandler) {
     let cb = createElement('input', className);
     cb.type = 'checkbox';
 
@@ -42,38 +42,90 @@ function createCollapseBox(child_id) {
     return svg;
 }
 
+function getType(obj) {
+    return isArray(obj) ? 'Array' : typeof(obj);
+}
+
+function removeAllChildren(element) {
+    while (element.firstChild) {
+        element.removeChild(element.firstChild);
+    }
+}
+
+function createDropdown(options, onChangeHandler){
+    select = createElement('select', 'dropdown');
+    for (var option of options) {
+        let optionElement = createElement('option');
+        optionElement.innerText = option;
+        select.appendChild(optionElement);
+    }
+
+    if (onChangeHandler) {
+        select.addEventListener('change', function() {
+            selectedValue = select.options[select.selectedIndex].value;
+            onChangeHandler(selectedValue);
+        })
+    }
+    return select;
+}
 class TreeNode {
-    constructor() {
+    constructor(type) {
         this.children = {};
         this.isSelected = false;
-        this.isArray = false;
+        this.type = type;
+        this.controlNode = document.createElement('span');
     }
     
-    toggle(path) {
-        if (path.length === 0) {
-            if (this.isSelected) { // this is delete, we are at final node {
-                this.isSelected = false;
-                return (Object.keys(this.children).length === 0)
-            } else { // this is add, we are at node to add
-                this.isSelected = true;
-                return false;
-            }
-        } else {
-            const rootVal = path[0];
-            if (!this.children[rootVal]) { // this is addition, add new child node
-                if (typeof(rootVal) === 'number') { // only arrays have numbers as keys, objects keys will ALWAYS be strings
-                    this.isArray = true;
+    _refreshControlNode() {
+        removeAllChildren(this.controlNode);
+        switch(this.type) {
+            case 'Array':
+                let node = this;
+                const arrayDropdown = createDropdown(['Only selected', 'All', 'Range'], (selectedValue) => { node.agg = selectedValue; refreshJQLine(); } )
+                this.controlNode.append(arrayDropdown);
+                //  break;
+            case 'object':
+                if (Object.keys(this.children).length > 1) {
+                    const aggregationDropDown = createDropdown(['No aggregation', 'Array', 'Object']);
+                    this.controlNode.append(aggregationDropDown);
                 }
-
-                this.children[rootVal] = new TreeNode();
-            }
-            const canDelete = this.children[rootVal].toggle(path.slice(1))
-            if (canDelete) {
-                delete this.children[rootVal]
-                return (Object.keys(this.children).length === 0)
-            }
-            return false;
+                break;    
+            default:
+                // this.controlNode.innerText = this.type;
+                break;        
         }
+    }
+
+    getSelectionControlNode() {
+        return this.controlNode;
+    }
+
+    toggle(path, obj) {
+        this._toggle(path, 0, obj);
+    }
+
+    _toggle(path, loc, obj) {
+        let canDelete;
+        if (path.length === loc) {
+            this.isSelected = !this.isSelected;
+            canDelete = !this.isSelected;
+        } else {
+            const next_child = path[loc];
+            if (!this.children[next_child]) { // this is addition, add new child node                
+                const elementTreeNode = new TreeNode(getType(obj[next_child]));
+                this.children[next_child] = elementTreeNode;
+
+                selectionState.getSelectionControl(path.slice(0, loc + 1)).appendChild(elementTreeNode.getSelectionControlNode());
+            }
+            canDelete = this.children[next_child]._toggle(path, loc + 1, obj[next_child])
+            if (canDelete) {
+                delete this.children[next_child]
+                removeAllChildren(selectionState.getSelectionControl(path.slice(0, loc + 1)))
+                // return (Object.keys(this.children).length === 0)
+            }
+        }
+        this._refreshControlNode()
+        return canDelete && Object.keys(this.children).length === 0;
     }
 
     getJqLine() {
@@ -92,7 +144,11 @@ class TreeNode {
 
         var isFirst = true;
         for (var key in this.children) {
-            const subline = escapeValueForJq(key, this.isArray) + this.children[key].getJqLine();    ;
+            if (this.agg === 'All') {
+                line += `[]` + this.children[key].getJqLine();
+                break;
+            }
+            const subline = escapeValueForJq(key, this.type) + this.children[key].getJqLine();
             if (degree === 1) {
                  line += subline;
             }  else {
@@ -108,30 +164,24 @@ class TreeNode {
     }
 }
 
-function escapeValueForJq(value, isArray) {
-    if (isArray) {
+function escapeValueForJq(value, type) {
+    if (type === 'Array') {
         return `[${value}]`;
-    } else if (value.match(/.*[^a-zA-Z0-9].*/g)) {
-        return `."${value}"`;
-    } else {
+    } else if (/[a-zA-Z][a-zA-Z0-9]*/.test(value)) {
         return `.${value}`;
+    } else {
+        return `."${value}"`;
     }
     return res;
 }
 class Tree {
-    constructor(isArray) {
-        this.root = new TreeNode(isArray);
+    constructor(obj) {
+        this.root = new TreeNode(getType(obj));
+        this.obj = obj;
     }
 
     toggle(path) {
-        this.root.toggle(path);
-    }
-    add(path) {
-        this.root.add(path);
-    }
-
-    clear() {
-        this.root.children = {};
+        this.root.toggle(path, this.obj);
     }
 
     getJqLine() {
@@ -140,15 +190,39 @@ class Tree {
     }
 }
 
-let selectedPaths_old = new Set();
 
-toggleHeirarchy = function(heirarchy) {
-    return function() {
-        selectedPaths.toggle(heirarchy);
+function get_heirarchy_id(heirarchy) {
+    return heirarchy.join("___")
+}
 
-        let str = selectedPaths.getJqLine();
-        document.getElementById("result-line").innerText = str;
+class SelectionState {
+    constructor(obj) {
+        this.selectionTree = new Tree(obj);
+        this.selectionControlElements = {}
     }
+
+    toggleHeirarchy(heirarchy) {
+        const state = this;
+        return function() {
+            state.selectionTree.toggle(heirarchy);
+            refreshJQLine();
+        }
+    }
+
+    registerSelectionControl(heirarchy, element) {
+        this.selectionControlElements[get_heirarchy_id(heirarchy)] = element;
+    }
+
+    getSelectionControl(heirarchy) {
+        return this.selectionControlElements[get_heirarchy_id(heirarchy)]
+    }
+
+
+}
+
+function refreshJQLine() {
+    let str = selectionState.selectionTree.getJqLine();
+    document.getElementById("result-line").innerText = str;
 }
 
 function createJsonTree(obj, current_heirarchy) {
@@ -159,13 +233,14 @@ function createJsonTree(obj, current_heirarchy) {
         currentNode.classList.add('collapse','show')
 
         for (var property in obj) {                
-            if (isArray(obj)) {
+            if (isArray(obj)) { // TODO: really needed????
                 property = Number.parseInt(property);
             }
 
             current_heirarchy.push(property);
             let propertyNode = createElement('li', 'jsonProperty');    
-            const propertyNodeId = current_heirarchy.join("___")
+            currentNode.appendChild(propertyNode); 
+            const propertyNodeId = get_heirarchy_id(current_heirarchy)
 
             // create collapse checkbox
             if (obj[property] instanceof Object) {
@@ -181,56 +256,102 @@ function createJsonTree(obj, current_heirarchy) {
 
             // create selection checkbox
             if (obj[property] instanceof Object) {
-                let selectChechBox = createCheckBox('selectBox', toggleHeirarchy(current_heirarchy.slice()));
+                let selectChechBox = createCheckBox('selectBox', selectionState.toggleHeirarchy(current_heirarchy.slice()));
                 propertyNode.appendChild(selectChechBox);
+
+                // add element to place selection control
+                const selectionContol = createElement('span', 'selectionControl');
+                propertyNode.appendChild(selectionContol);
+                selectionState.registerSelectionControl(current_heirarchy, selectionContol);    
             }
 
+        
             // create sub-tree
             let childNode = createJsonTree(obj[property], current_heirarchy);
             childNode.setAttribute("id", propertyNodeId)
             propertyNode.appendChild(childNode);
             current_heirarchy.pop();
-
-            // attach property to main node
-            currentNode.appendChild(propertyNode); 
         }
     } else {
         currentNode = createElement('span', 'jsonValue');
         currentNode.textContent = obj;
-        let selectChechBox = createCheckBox('selectBox', toggleHeirarchy(current_heirarchy.slice()));
+        let selectChechBox = createCheckBox('selectBox', selectionState.toggleHeirarchy(current_heirarchy.slice()));
         currentNode.appendChild(selectChechBox);
+
+        // add element to place selection control
+        const selectionContol = createElement('span', 'selectionControl');
+        currentNode.appendChild(selectionContol);
+        selectionState.registerSelectionControl(current_heirarchy, selectionContol);    
     }
 
     return currentNode;
 }
 
-let selectedPaths;
+let selectionState;
+
+function nodeType(obj) {
+    if (isArray(obj)) {
+        return "Array";
+    } 
+    return typeof(obj);
+}
 
 function parseJson() {
     let text = document.getElementById("input").value  
-    try {
-        let obj = JSON.parse(text)
-        let objectElement = createJsonTree(obj, [])
 
+    try {
         let root = document.getElementById("tree-container")
         root.innerHTML = ''
+        selectionControls = {}
+        let obj = JSON.parse(text);
+        selectionState = new SelectionState(obj);
+
+        document.getElementById("input").setCustomValidity(''); // clear error border
+        $("#input").tooltip('hide')
+
+        let objectElement = createJsonTree(obj, [])
+
+
         root.appendChild(objectElement)
         
-        selectedPaths = new Tree(isArray(obj));
 
         document.querySelector('#tree-container').scrollIntoView({ 
             behavior: 'smooth' 
         });
+        
     } catch(err) {
+        document.getElementById("input").setCustomValidity('error'); // set error border
+        $("#input").tooltip({ boundary: 'window', title: err.message, trigger: 'manual'})
+        $("#input").tooltip('show')
+
         console.log(err)
     }
 
 }
 
-function sample() {
-    obj = {"quiz":{"sport":{"q1":{"question":"Which one is correct team name in NBA?","options":["New York Bulls","Los Angeles Kings","Golden State Warriros","Huston Rocket"],"answer":"Huston Rocket"}},"maths":{"q1":{"question":"5 + 7 = ?","options":["10","11","12","13"],"answer":"12"},"q2":{"question":"12 - 8 = ?","options":["1","2","3","4"],"answer":"4"}}}}
+var timeoutHandler;
+function delayParseJson() {
+    if (timeoutHandler) {
+        clearTimeout(timeoutHandler)
+    }
+    timeoutHandler = setTimeout(parseJson, 1000);
+
+}
+
+function sample_quiz() {
+    let obj = {"quiz":{"sport":{"q1":{"question":"Which one is correct team name in NBA?","options":["New York Bulls","Los Angeles Kings","Golden State Warriros","Huston Rocket"],"answer":"Huston Rocket"}},"maths":{"q1":{"question":"5 + 7 = ?","options":["10","11","12","13"],"answer":"12"},"q2":{"question":"12 - 8 = ?","options":["1","2","3","4"],"answer":"4"}}}}
+    sample(obj);
+}
+
+function sample_grades() {
+    let obj = {"name":"yossi", "grades":[{"course":"calculus", "grade":85},{"course":"algebra", "grade":70}, {"course":"english", "grade":90}]}
+    sample(obj);
+}
+
+function sample(obj) {
     text = JSON.stringify(obj, null, 2); 
     document.getElementById("input").value = text;
+    delayParseJson()
 }
 
 function openJqPlay() {
@@ -278,3 +399,4 @@ function openJqPlay() {
 
     console.log(json, jqline, filter);
 }
+

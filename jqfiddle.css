@@ -32,6 +32,13 @@
     height: 200px;
 }
 
+#input:invalid {
+    border: 1px solid #e36464;
+    box-shadow: 0 0 0 0.2rem #e36464;
+    outline: 0;
+    opacity: 0.75;
+}
+
 #tree-container {
     flex: 1 1 auto;
     height: auto;
@@ -74,3 +81,7 @@
  .selectBox {
      margin-left:20px;
  }
+
+.selectionControl {
+    margin-left: 20px;
+}

@@ -24,7 +24,7 @@
             <div class="input-group-prepend pretext-width">
               <span class="input-group-text">1. Paste your JSON</span>
             </div>
-            <textarea class="form-control" aria-label="1. Paste your JSON" id="input"></textarea>
+            <textarea class="form-control" aria-label="1. Paste your JSON" id="input" oninput="delayParseJson()" data-toggle="tooltip" data-placement="top"></textarea>
           </div>
              
           <div class="input-group mb-3">
@@ -49,8 +49,12 @@
 
           <div id="footer">
             <button onclick="parseJson()">go</button>
-            <button onclick="sample()">enter sample json</button>
+            <button onclick="sample_quiz()">enter quiz json</button>
+            <button onclick="sample_grades()">enter grades json</button>
             <!-- <button onclick="openJqPlay()">test in jqplay.com</button> -->
+            <!-- <button type="button" class="btn btn-secondary" data-toggle="tooltip" data-placement="top" title="Tooltip on top">
+              Tooltip on top
+            </button> -->
             <div><a href="https://github.com/yossivainshtein/jqfiddle">view source on Github</a></div>
           </div>
           
@@ -61,5 +65,7 @@
         <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
         <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+        <!-- <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap.native/2.0.15/bootstrap-native.min.js"></script> -->
+
     </body>
 </html>

@@ -128,7 +128,6 @@ class Tree {
     }
 }
 
-
 function get_heirarchy_id(heirarchy) {
     return heirarchy.join("___")
 }
@@ -228,35 +227,34 @@ function createJsonTree(obj, current_heirarchy) {
 let selectionState;
 
 function parseJson() {
-    let text = document.getElementById("input").value  
+    const inputElement = document.getElementById("input");
+    const treeContainerElement = document.getElementById("tree-container");
 
-    try {
-        let root = document.getElementById("tree-container")
-        root.innerHTML = ''
-        selectionControls = {}
-        let obj = JSON.parse(text);
-        selectionState = new SelectionState(obj);
-
-        document.getElementById("input").setCustomValidity(''); // clear error border
-        $("#input").tooltip('hide')
-
-        let objectElement = createJsonTree(obj, [])
-
-
-        root.appendChild(objectElement)
-        
-
-        document.querySelector('#tree-container').scrollIntoView({ 
-            behavior: 'smooth' 
-        });
-        
+    let json = inputElement.value
+    let obj;
+    try {        
+        obj = JSON.parse(json);
     } catch(err) {
-        document.getElementById("input").setCustomValidity('error'); // set error border
-        $("#input").tooltip({ boundary: 'window', title: err.message, trigger: 'manual'})
-        $("#input").tooltip('show')
-
-        console.log(err)
+        inputElement.setCustomValidity('error'); // set error border
+        $("#input").tooltip({ boundary: 'window', trigger: 'manual'})
+                   .attr('data-original-title', err.message)
+                   .tooltip('show');
+        return;
     }
+
+    inputElement.setCustomValidity(''); // clear error border
+    $("#input").tooltip('hide')
+
+    selectionState = new SelectionState(obj);
+
+    removeAllChildren(treeContainerElement);
+    let objectTree = createJsonTree(obj, [])
+    treeContainerElement.appendChild(objectTree)
+    
+    document.querySelector('#tree-container').scrollIntoView({ 
+        behavior: 'smooth' 
+    });
+    
 
 }
 

@@ -105,7 +105,7 @@ class TreeNode {
 function escapeValueForJq(value, type) {
     if (type === 'Array') {
         return `[${value}]`;
-    } else if (/[a-zA-Z][a-zA-Z0-9]*/.test(value)) {
+    } else if (/^[a-zA-Z][a-zA-Z0-9]*$/.test(value)) {
         return `.${value}`;
     } else {
         return `."${value}"`;

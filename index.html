@@ -1,6 +1,11 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="en-US">
     <head>
+        <meta charset="utf-8">
+        <link rel="icon" type="image/png" sizes="32x32" href="images/favicon_io/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="images/favicon_io/favicon-16x16.png">
+        <title>jq selector</title>
+
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
         <script src="js/jqselector.js" type="text/javascript"></script>
         <script src="js/clipboard.js" type="text/javascript"></script>
@@ -17,18 +22,18 @@
         </svg>
 
         <div class="page-container">
-          <div class="mainHeader">
+          <div id="page-header" class="page-header">
             <h1>JQ selector</h1>
             <p>Build your jq line without fuss!</p>
           </div>
-          <div class="input-group">
+          <div id="json-container" class="input-group">
             <div class="input-group-prepend pretext-width">
               <span class="input-group-text">1. Paste your JSON</span>
             </div>
             <textarea class="form-control" aria-label="1. Paste your JSON" id="input" oninput="delayParseJson()" data-toggle="tooltip" data-placement="top"></textarea>
           </div>
              
-          <div class="input-group mb-3">
+          <div id="selection-tree-container" class="input-group mb-3">
             <div class="input-group-prepend pretext-width">
               <span class="input-group-text">2. Select output</span>
             </div>
@@ -36,7 +41,7 @@
           </div>
           
 
-          <div class="input-group mb-3">
+          <div id="output-container" class="input-group mb-3">
               <div class="input-group-prepend pretext-width">
                 <span class="input-group-text">3. Copy jq line</span>
               </div>
@@ -46,7 +51,7 @@
                     <img src="images/clippy.svg" width="13" alt="copy to clipboard"></img>
                   </button>
               </div>
-            </div> 
+          </div> 
 
           <div id="footer">
             <button onclick="parseJson()">go</button>
@@ -58,9 +63,8 @@
             </button> -->
             <div><a href="https://github.com/yossivainshtein/jqfiddle">view source on Github</a></div>
           </div>
-          
         </div>
-
+        
         <!-- Optional JavaScript -->
         <!-- jQuery first, then Popper.js, then Bootstrap JS -->
         <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
